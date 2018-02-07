@@ -6,6 +6,7 @@ import type {
   EdgeTokenInfo,
   EdgeWalletInfo
 } from '../edge-core-index.js'
+import type { LoginStash } from './login/login-types.js'
 
 /**
  * The account fires this when it loads its keys from disk.
@@ -145,6 +146,30 @@ export interface LoginAction {
 }
 
 /**
+ * Fires when we delete login data from disk.
+ */
+export interface LoginDeleted {
+  type: 'LOGIN_DELETED';
+  payload: string; // username
+}
+
+/**
+ * Fires when we load the login data from disk.
+ */
+export interface LoginStashesLoaded {
+  type: 'LOGIN_STASHES_LOADED';
+  payload: { [filename: string]: Object };
+}
+
+/**
+ * Fires when we write a login stash to disk.
+ */
+export interface LoginStashSaved {
+  type: 'LOGIN_STASH_SAVED';
+  payload: LoginStash;
+}
+
+/**
  * Fires when a user logs out.
  */
 export interface LogoutAction {
@@ -180,5 +205,8 @@ export type RootAction =
   | CurrencyWalletNameChanged
   | InitAction
   | LoginAction
+  | LoginDeleted
+  | LoginStashesLoaded
+  | LoginStashSaved
   | LogoutAction
   | RepoSynced

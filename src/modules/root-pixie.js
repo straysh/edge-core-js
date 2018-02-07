@@ -8,6 +8,8 @@ import type { CurrencyOutput } from './currency/currency-pixie.js'
 import currency from './currency/currency-pixie.js'
 import type { ExchangeOutput } from './exchange/exchange-pixie.js'
 import exchange from './exchange/exchange-pixie.js'
+import login from './login/login-pixie.js'
+import type { LoginOutput } from './login/login-pixie.js'
 import { makeApiProps } from './root.js'
 import type { ScryptOutput } from './scrypt/scrypt-pixie.js'
 import scrypt from './scrypt/scrypt-pixie.js'
@@ -17,6 +19,7 @@ export interface RootOutput {
   contextApi: EdgeContext;
   currency: CurrencyOutput;
   exchange: ExchangeOutput;
+  login: LoginOutput;
   scrypt: ScryptOutput;
 }
 
@@ -24,5 +27,6 @@ export const rootPixie = combinePixies({
   contextApi: filterPixie(contextApiPixie, makeApiProps),
   currency,
   exchange,
+  login,
   scrypt
 })

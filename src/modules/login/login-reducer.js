@@ -9,6 +9,8 @@ import type { ActiveLoginState } from './active/active-login-reducer.js'
 import type { WalletInfoMap } from './login-types.js'
 import server from './server/login-server-reducer.js'
 import type { LoginServerState } from './server/login-server-reducer.js'
+import stashes from './stashes/login-stashes-reducer.js'
+import type { LoginStashesState } from './stashes/login-stashes-reducer.js'
 
 export interface LoginState {
   activeLoginIds: Array<string>;
@@ -17,6 +19,7 @@ export interface LoginState {
   loginCount: number;
   logins: { [index: string]: ActiveLoginState };
   server: LoginServerState;
+  stashes: LoginStashesState;
   walletInfos: WalletInfoMap;
 }
 
@@ -62,6 +65,7 @@ export default buildReducer({
   ),
 
   server,
+  stashes,
 
   walletInfos (state, action, next: RootState) {
     // Optimize the common case:
