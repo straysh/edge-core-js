@@ -14,7 +14,6 @@ import { makeFakeIos } from '../io/fake/fake-io.js'
 import { stashFakeUser } from '../io/fake/fakeUser.js'
 import { fixIo } from '../io/fixIo.js'
 import type { RootAction } from './actions.js'
-import { LoginStore } from './login/loginStore.js'
 import { makeStore } from './makeStore.js'
 import { rootPixie } from './root-pixie.js'
 import type { RootOutput } from './root-pixie.js'
@@ -39,9 +38,6 @@ export interface CoreRoot {
   onExchangeUpdate(): void;
   plugins: Array<EdgeCorePluginFactory>;
   shapeshiftKey: string | void;
-
-  // Loose objects:
-  loginStore: LoginStore;
 
   // Redux state:
   redux: Store<RootState, RootAction>;
@@ -88,7 +84,6 @@ export function makeCoreRoot (opts: EdgeContextOptions) {
     onExchangeUpdate,
     plugins,
     shapeshiftKey,
-    loginStore: new LoginStore(io),
     redux: makeStore(),
     output
   }
@@ -174,7 +169,6 @@ export function makeRootProps (
 export interface ApiProps {
   +dispatch: Dispatch<RootAction>;
   io: EdgeIo;
-  loginStore: LoginStore;
   onError(e: Error): void;
   output: RootOutput;
   shapeshiftKey: string | void;
@@ -185,18 +179,9 @@ export interface ApiProps {
  * Converts the root props to the API props format.
  */
 export function makeApiProps (props: RootProps): ApiProps {
-  const {
-    dispatch,
-    coreRoot,
-    output,
-    io,
-    onError,
-    shapeshiftKey,
-    state
-  } = props
-  const { loginStore } = coreRoot
+  const { dispatch, output, io, onError, shapeshiftKey, state } = props
 
-  return { dispatch, loginStore, output, io, onError, shapeshiftKey, state }
+  return { dispatch, output, io, onError, shapeshiftKey, state }
 }
 
 export type ApiInput = PixieInput<ApiProps>

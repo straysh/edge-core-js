@@ -17,7 +17,12 @@ import { makeShapeshiftApi } from '../exchange/shapeshift.js'
 import { createLogin, usernameAvailable } from '../login/create.js'
 import { requestEdgeLogin } from '../login/edge.js'
 import { fetchLoginMessages, makeLoginTree, resetOtp } from '../login/login.js'
-import { fixUsername } from '../login/loginStore.js'
+import {
+  fixUsername,
+  listUsernames,
+  loadUsername,
+  removeUsername
+} from '../login/loginStore.js'
 import { checkPasswordRules, loginPassword } from '../login/password.js'
 import { getPin2Key, loginPin2 } from '../login/pin2.js'
 import {
@@ -35,7 +40,6 @@ export const contextApiPixie = (ai: ApiInput) => () => {
 
 function makeContextApi (ai: ApiInput) {
   const appId = ai.props.state.login.appId
-  const { loginStore } = ai.props
 
   const shapeshiftApi = makeShapeshiftApi(ai)
 
@@ -53,11 +57,11 @@ function makeContextApi (ai: ApiInput) {
     },
 
     listUsernames (): Promise<Array<string>> {
-      return loginStore.listUsernames()
+      return listUsernames(ai)
     },
 
     deleteLocalAccount (username: string): Promise<void> {
-      return loginStore.remove(username)
+      return removeUsername(ai, username)
     },
 
     usernameAvailable (username: string): Promise<boolean> {
@@ -87,7 +91,7 @@ function makeContextApi (ai: ApiInput) {
     ) {
       const { callbacks } = opts || {} // opts can be `null`
 
-      return loginStore.load(username).then(stashTree => {
+      return loadUsername(ai, username).then(stashTree => {
         const loginTree = makeLoginTree(
           stashTree,
           base58.parse(loginKey),
@@ -115,7 +119,7 @@ function makeContextApi (ai: ApiInput) {
     },
 
     async pinExists (username: string) {
-      const loginStash = await loginStore.load(username)
+      const loginStash = await loadUsername(ai, username)
       const pin2Key = getPin2Key(loginStash, appId)
       return pin2Key && pin2Key.pin2Key != null
     },
@@ -133,7 +137,7 @@ function makeContextApi (ai: ApiInput) {
     },
 
     getRecovery2Key (username: string) {
-      return loginStore.load(username).then(loginStash => {
+      return loadUsername(ai, username).then(loginStash => {
         const recovery2Key = getRecovery2Key(loginStash)
         if (recovery2Key == null) {
           throw new Error('No recovery key stored locally.')

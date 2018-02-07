@@ -8,7 +8,12 @@ import { makeSnrp, scrypt, userIdSnrp } from '../scrypt/scrypt-selectors.js'
 import { authRequest } from './authServer.js'
 import type { LoginKit, LoginStash, LoginTree } from './login-types.js'
 import { applyLoginReply, makeLoginTree, syncLogin } from './login.js'
-import { fixUsername, hashUsername } from './loginStore.js'
+import {
+  fixUsername,
+  hashUsername,
+  loadUsername,
+  saveUsername
+} from './loginStore.js'
 
 export const passwordAuthSnrp = userIdSnrp
 
@@ -77,8 +82,8 @@ export async function loginPassword (
   password: string,
   otpKey: string | void
 ) {
-  const { io, loginStore } = ai.props
-  let stashTree = await loginStore.load(username)
+  const { io } = ai.props
+  let stashTree = await loadUsername(ai, username)
 
   try {
     const loginKey = await extractLoginKey(ai, stashTree, username, password)
@@ -98,7 +103,7 @@ export async function loginPassword (
     )
     stashTree = applyLoginReply(stashTree, loginKey, loginReply)
     if (otpKey) stashTree.otpKey = otpKey
-    loginStore.save(stashTree)
+    saveUsername(ai, stashTree) // Happens in parallel
     return makeLoginTree(stashTree, loginKey)
   }
 }

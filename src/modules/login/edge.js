@@ -5,6 +5,7 @@ import type { ApiInput } from '../root.js'
 import { makeLobby } from './lobby.js'
 import type { LoginTree } from './login-types.js'
 import { makeLoginTree, searchTree } from './login.js'
+import { saveUsername } from './loginStore.js'
 
 /**
  * The public API for edge login requests.
@@ -25,7 +26,7 @@ class ABCEdgeLoginRequest {
 function onReply (ai: ApiInput, subscription, reply, appId, opts) {
   subscription.unsubscribe()
   const stashTree = reply.loginStash
-  const { io, loginStore } = ai.props
+  const { io } = ai.props
 
   if (opts.onProcessLogin != null) {
     opts.onProcessLogin(stashTree.username)
@@ -43,7 +44,7 @@ function onReply (ai: ApiInput, subscription, reply, appId, opts) {
     io.console.warn('Fixing base58 pin2Key')
     child.pin2Key = base64.stringify(base58.parse(child.pin2Key))
   }
-  loginStore.save(stashTree)
+  saveUsername(ai, stashTree) // Happens in parallel
 
   // This is almost guaranteed to blow up spectacularly:
   const loginKey = base64.parse(reply.loginKey)

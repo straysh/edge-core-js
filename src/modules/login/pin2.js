@@ -7,7 +7,7 @@ import type { ApiInput } from '../root.js'
 import { authRequest } from './authServer.js'
 import type { LoginKit, LoginStash, LoginTree } from './login-types.js'
 import { applyLoginReply, makeLoginTree, searchTree } from './login.js'
-import { fixUsername } from './loginStore.js'
+import { fixUsername, loadUsername, saveUsername } from './loginStore.js'
 
 function pin2Id (pin2Key: Uint8Array, username: string) {
   const data = utf8.parse(fixUsername(username))
@@ -68,8 +68,7 @@ export async function loginPin2 (
   pin: string,
   otpKey: string | void
 ) {
-  const { loginStore } = ai.props
-  let stashTree = await loginStore.load(username)
+  let stashTree = await loadUsername(ai, username)
   const { pin2Key, appId: appIdFound } = getPin2Key(stashTree, appId)
   if (pin2Key == null) {
     throw new Error('No PIN set locally for this account')
@@ -83,7 +82,7 @@ export async function loginPin2 (
   )
   stashTree = applyLoginReply(stashTree, loginKey, loginReply)
   if (otpKey) stashTree.otpKey = otpKey
-  loginStore.save(stashTree)
+  saveUsername(ai, stashTree) // Happens in parallel
 
   // Capture the PIN into the login tree:
   const loginTree = makeLoginTree(stashTree, loginKey, appIdFound)
@@ -96,8 +95,7 @@ export async function loginPin2 (
  */
 export async function checkPin2 (ai: ApiInput, login: LoginTree, pin: string) {
   const { appId, username } = login
-  const { loginStore } = ai.props
-  const stashTree = await loginStore.load(username)
+  const stashTree = await loadUsername(ai, username)
   const { pin2Key } = getPin2Key(stashTree, appId)
   if (pin2Key == null) {
     throw new Error('No PIN set locally for this account')
