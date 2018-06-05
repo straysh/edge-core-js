@@ -36,6 +36,29 @@ export interface AddedCustomToken {
 }
 
 /**
+ * Called when a currency engine fires the onBalanceChanged callback.
+ */
+export interface CurrencyEngineChangedBalance {
+  type: 'CURRENCY_ENGINE_CHANGED_BALANCE';
+  payload: {
+    balance: string,
+    currencyCode: string,
+    walletId: string
+  };
+}
+
+/**
+ * Called when a currency engine fires the onBlockHeightChanged callback.
+ */
+export interface CurrencyEngineChangedHeight {
+  type: 'CURRENCY_ENGINE_CHANGED_HEIGHT';
+  payload: {
+    height: number,
+    walletId: string
+  };
+}
+
+/**
  * Called when a currency engine fires the onTransactionsChanged callback.
  */
 export interface CurrencyEngineChangedTxs {
@@ -210,6 +233,8 @@ export interface StorageWalletSynced {
 export type RootAction =
   | AccountKeysLoadedAction
   | AddedCustomToken
+  | CurrencyEngineChangedBalance
+  | CurrencyEngineChangedHeight
   | CurrencyEngineChangedTxs
   | CurrencyEngineCleared
   | CurrencyEngineFailed
