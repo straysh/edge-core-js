@@ -407,7 +407,7 @@ export interface EdgeAccount {
   getFirstWalletInfo(type: string): ?EdgeWalletInfo;
   getWalletInfo(id: string): ?EdgeWalletInfo;
   listWalletIds(): Array<string>;
-  listSplittableWalletTypes(walletId: string): Array<string>;
+  listSplittableWalletTypes(walletId: string): Promise<Array<string>>;
   splitWalletInfo(walletId: string, newWalletType: string): Promise<string>;
 
   // Currency wallets:
