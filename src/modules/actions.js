@@ -61,6 +61,18 @@ export interface CurrencyEngineChangedHeight {
 /**
  * Called when a currency engine fires the onTransactionsChanged callback.
  */
+export interface CurrencyEngineChangedSeeds {
+  type: 'CURRENCY_ENGINE_CHANGED_SEEDS';
+  payload: {
+    displayPublicSeed: string | null,
+    displayPrivateSeed: string | null,
+    walletId: string
+  };
+}
+
+/**
+ * Called when a currency engine fires the onTransactionsChanged callback.
+ */
 export interface CurrencyEngineChangedTxs {
   type: 'CURRENCY_ENGINE_CHANGED_TXS';
   payload: {
@@ -235,6 +247,7 @@ export type RootAction =
   | AddedCustomToken
   | CurrencyEngineChangedBalance
   | CurrencyEngineChangedHeight
+  | CurrencyEngineChangedSeeds
   | CurrencyEngineChangedTxs
   | CurrencyEngineCleared
   | CurrencyEngineFailed
