@@ -3,6 +3,7 @@
 import 'regenerator-runtime/runtime'
 
 import { isReactNative } from 'detect-bundler'
+import { makeProxyClient, makeProxyServer } from 'yaob'
 
 import type { EdgeContext, EdgeContextOptions } from './edge-core-index.js'
 import { makeBrowserIo } from './io/browser/browser-io.js'
@@ -10,6 +11,9 @@ import { makeFakeIos } from './io/fake/fake-io.js'
 import { stashFakeUser } from './io/fake/fakeUser.js'
 import { isNode, makeNodeIo } from './io/node/node-io.js'
 import { makeReactNativeIo } from './io/react-native/react-native-io.js'
+import { AccountSync } from './modules/account/account-api.js'
+import { ContextSync } from './modules/context/context-api-pixie.js'
+import { CurrencyWalletSync } from './modules/currency/wallet/currency-wallet-api.js'
 import { makeCoreRoot, startCoreRoot } from './modules/root.js'
 
 /**
@@ -52,7 +56,35 @@ export function makeFakeContexts (
 
     const coreRoot = makeCoreRoot(io, opts[i])
     startCoreRoot(coreRoot)
-    return coreRoot.output.contextApi
+
+    // Yaob:
+    const constructors = {
+      AccountSync,
+      ContextSync,
+      CurrencyWalletSync
+    }
+    function sendClientMessage (message) {
+      // console.log(JSON.stringify(message, null, 1))
+      server.handleMessage(message)
+    }
+    function sendServerMessage (message) {
+      // console.log(JSON.stringify(message, null, 1))
+      client.handleMessage(message)
+    }
+    const client = makeProxyClient({
+      sendMessage: sendClientMessage,
+      constructors
+    })
+    const root: any = coreRoot.output.contextApi
+    const server = makeProxyServer({
+      constructors,
+      root,
+      sendMessage: sendServerMessage
+    })
+
+    // $FlowFixMe
+    const context: EdgeContext = client.syncRoot
+    return context
   })
 }
 

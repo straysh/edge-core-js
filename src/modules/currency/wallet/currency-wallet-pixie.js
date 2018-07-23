@@ -5,9 +5,9 @@ import type { PixieInput } from 'redux-pixies'
 
 import type {
   EdgeCurrencyEngine,
-  EdgeCurrencyPlugin,
-  EdgeCurrencyWallet
+  EdgeCurrencyPlugin
 } from '../../../edge-core-index.js'
+import { theApi } from '../../account/account-api.js'
 import type { ApiInput, RootProps } from '../../root.js'
 import {
   addStorageWallet,
@@ -19,7 +19,7 @@ import {
   makeStorageWalletLocalEncryptedFolder
 } from '../../storage/storage-selectors.js'
 import { getCurrencyPlugin } from '../currency-selectors.js'
-import { makeCurrencyWalletApi } from './currency-wallet-api.js'
+import { CurrencyWallet } from './currency-wallet-api.js'
 import {
   forEachListener,
   makeCurrencyWalletCallbacks,
@@ -29,7 +29,7 @@ import { loadAllFiles } from './currency-wallet-files.js'
 import type { CurrencyWalletState } from './currency-wallet-reducer.js'
 
 export interface CurrencyWalletOutput {
-  api: EdgeCurrencyWallet | void;
+  api: CurrencyWallet | void;
   plugin: EdgeCurrencyPlugin | void;
   engine: EdgeCurrencyEngine | void;
   engineStarted: boolean | void;
@@ -150,13 +150,14 @@ export default combinePixies({
       return
     }
 
-    const currencyWalletApi = makeCurrencyWalletApi(
+    const currencyWalletApi = new CurrencyWallet(
       input,
       input.props.selfOutput.plugin,
       input.props.selfOutput.engine
     )
     input.onOutput(currencyWalletApi)
 
+    if (theApi) theApi.emit('keyListChanged', [])
     forEachListener(input, ({ onKeyListChanged }) => {
       if (onKeyListChanged) onKeyListChanged()
     })

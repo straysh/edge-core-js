@@ -1,35 +1,39 @@
 // @flow
 
+import { Proxyable, deleteProxy } from 'yaob'
+
 import { authRequest } from '../login/authServer.js'
 import { fetchLobbyRequest, makeLobby, sendLobbyReply } from '../login/lobby.js'
 import type { LobbyRequest } from '../login/lobby.js'
 import { hashUsername } from '../login/loginStore.js'
 import type { ApiInput } from '../root.js'
 
+export type EdgeLobbyEvents = {
+  error: Error,
+  repliesChanged: Array<Object>
+}
+
 /**
  * The requesting side of an Edge login lobby.
  * The `replies` property will update as replies come in.
  */
-class EdgeLobby {
+class EdgeLobby extends Proxyable<EdgeLobbyEvents> {
   _lobby: Object
-  _onError: Function
-  _onRepliesChanged: Function
   _replies: Array<Object>
   _unsubscribe: Function
 
   constructor (lobby: Object) {
+    super()
     this._lobby = lobby
-    this._onError = () => {}
-    this._onRepliesChanged = () => {}
     this._replies = []
 
     const { unsubscribe } = lobby.subscribe(
       (reply: Object) => {
         this._replies = [...this._replies, reply]
-        this._onRepliesChanged(this._replies)
+        this.emit('repliesChanged', this._replies)
       },
       (e: Error) => {
-        this._onError(e)
+        this.emit('error', e)
       }
     )
     this._unsubscribe = unsubscribe
@@ -45,11 +49,7 @@ class EdgeLobby {
 
   close () {
     this._unsubscribe()
-  }
-
-  on (name: string, f: Function) {
-    if (name === 'error') this._onError = f
-    else this._onRepliesChanged = f
+    deleteProxy(this)
   }
 }
 
@@ -57,10 +57,11 @@ class EdgeLobby {
  * A secret internal API which has some goodies for the CLI
  * and for unit testing.
  */
-export class EdgeInternalStuff {
+export class EdgeInternalStuff extends Proxyable<> {
   _ai: ApiInput
 
   constructor (ai: ApiInput) {
+    super()
     this._ai = ai
   }
 

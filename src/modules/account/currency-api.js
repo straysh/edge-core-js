@@ -1,5 +1,7 @@
 // @flow
 
+import { Proxyable } from 'yaob'
+
 import type {
   EdgeCurrencyInfo,
   EdgeCurrencyPlugin,
@@ -9,10 +11,11 @@ import type {
 /**
  * Access to an individual currency plugin's methods.
  */
-export class CurrencyTools implements EdgeCurrencyTools {
+export class CurrencyTools extends Proxyable<> implements EdgeCurrencyTools {
   _plugin: EdgeCurrencyPlugin
 
   constructor (plugin: EdgeCurrencyPlugin) {
+    super()
     this._plugin = plugin
   }
 

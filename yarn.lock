@@ -5515,6 +5515,10 @@ yallist@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/yallist/-/yallist-2.1.2.tgz#1c11f9218f076089a47dd512f93c6699a6a81d52"
 
+"yaob@https://github.com/Airbitz/yaob.git#rewrite2":
+  version "0.1.0"
+  resolved "https://github.com/Airbitz/yaob.git#3c91fed269bffaaefe249a8d68ecdc4746a3f694"
+
 yargs-parser@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-7.0.0.tgz#8d0ac42f16ea55debd332caf4c4038b3e3f5dfd9"

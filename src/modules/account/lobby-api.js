@@ -1,5 +1,7 @@
 // @flow
 
+import { Proxyable } from 'yaob'
+
 import type { EdgeLobby, EdgeLoginRequest } from '../../edge-core-index.js'
 import { wrapObject } from '../../util/api.js'
 import { base64 } from '../../util/encoding.js'
@@ -93,6 +95,56 @@ async function approveLoginRequest (
   })
 }
 
+export class EdgeLobbyLoginRequest extends Proxyable<> {
+  _ai: ApiInput
+  _displayName: string
+  _displayImageUrl: string | void
+  _loginRequest: Object
+  _lobbyJson: Object
+  _lobbyId: string
+  _accountState: Object
+
+  constructor (
+    ai: ApiInput,
+    lobbyId: string,
+    lobbyJson: Object,
+    appIdInfo: AppIdInfo,
+    accountState: Object
+  ) {
+    super()
+    this._ai = ai
+    const { displayName, displayImageUrl } = appIdInfo
+    this._lobbyId = lobbyId
+    this._lobbyJson = lobbyJson
+    this._loginRequest = lobbyJson.loginRequest
+    this._displayName = displayName
+    this._displayImageUrl = displayImageUrl
+    this._accountState = accountState
+  }
+
+  get appId () {
+    return this._loginRequest.appId
+  }
+
+  get displayImageUrl () {
+    return this._displayImageUrl
+  }
+
+  get displayName () {
+    return this._displayName
+  }
+
+  approve () {
+    return approveLoginRequest(
+      this._ai,
+      this.appId,
+      this._lobbyId,
+      this._lobbyJson,
+      this._accountState
+    )
+  }
+}
+
 /**
  * Fetches the contents of a lobby and returns them as an EdgeLobby API.
  */
@@ -109,18 +161,16 @@ export async function makeLobbyApi (
   if (lobbyJson.loginRequest) {
     const appId = lobbyJson.loginRequest.appId
     if (typeof appId !== 'string') throw new TypeError('Invalid login request')
-    const { displayName, displayImageUrl } = await fetchAppIdInfo(ai, appId)
+    const appIdInfo = await fetchAppIdInfo(ai, appId)
 
     // Make the API:
-    const rawLoginRequest: EdgeLoginRequest = {
-      appId,
-      displayName,
-      displayImageUrl,
-      approve () {
-        return approveLoginRequest(ai, appId, lobbyId, lobbyJson, accountState)
-      }
-    }
-    loginRequest = wrapObject('LoginRequest', rawLoginRequest)
+    loginRequest = new EdgeLobbyLoginRequest(
+      ai,
+      lobbyId,
+      lobbyJson,
+      appIdInfo,
+      accountState
+    )
   }
 
   const lobbyApi: EdgeLobby = {

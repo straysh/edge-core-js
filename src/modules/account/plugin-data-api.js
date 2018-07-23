@@ -1,14 +1,14 @@
 // @flow
 
 import { mapFiles, mapFolders } from 'disklet'
+import { Proxyable } from 'yaob'
 
-import type { EdgePluginData } from '../../edge-core-index.js'
+import type { EdgePluginData, EdgeWalletInfo } from '../../edge-core-index.js'
 import type { ApiInput } from '../root.js'
 import {
   getStorageWalletFolder,
   hashStorageWalletFilename
 } from '../storage/storage-selectors.js'
-import { AccountState } from './account-state.js'
 
 function getPluginsFolder (ai, accountWalletInfo) {
   const folder = getStorageWalletFolder(ai.props.state, accountWalletInfo.id)
@@ -30,76 +30,91 @@ function getPluginFile (ai, accountWalletInfo, pluginId, itemId) {
   )
 }
 
-export function makePluginDataApi (
-  ai: ApiInput,
-  accountState: AccountState
-): EdgePluginData {
-  const { accountWalletInfo } = accountState
+export class PluginData extends Proxyable<> implements EdgePluginData {
+  _ai: ApiInput
+  _accountWalletInfo: EdgeWalletInfo
 
-  const out: EdgePluginData = {
-    async deleteItem (pluginId: string, itemId: string): Promise<mixed> {
-      const file = getPluginFile(ai, accountWalletInfo, pluginId, itemId)
-      await file.delete()
-    },
-
-    async deletePlugin (pluginId: string): Promise<mixed> {
-      const folder = getPluginFolder(ai, accountWalletInfo, pluginId)
-      await folder.delete()
-    },
-
-    async listItemIds (pluginId: string): Promise<Array<string>> {
-      const folder = getPluginFolder(ai, accountWalletInfo, pluginId)
-
-      const itemIds = await mapFiles(folder, file =>
-        file
-          .getText()
-          .then(text => JSON.parse(text).key)
-          .catch(e => void 0)
-      )
-      return itemIds.filter(itemId => typeof itemId === 'string')
-    },
-
-    async listPluginIds (): Promise<Array<string>> {
-      const folder = getPluginsFolder(ai, accountWalletInfo)
-
-      const pluginIds = await mapFolders(folder, folder =>
-        folder
-          .file('Name.json')
-          .getText()
-          .then(text => JSON.parse(text).name)
-          .catch(e => void 0)
-      )
-      return pluginIds.filter(pluginId => typeof pluginId === 'string')
-    },
-
-    async getItem (pluginId: string, itemId: string): Promise<string> {
-      const file = getPluginFile(ai, accountWalletInfo, pluginId, itemId)
-      const text = await file.getText()
-      return JSON.parse(text).data
-    },
-
-    async setItem (
-      pluginId: string,
-      itemId: string,
-      value: string
-    ): Promise<mixed> {
-      // Set up the plugin folder, if needed:
-      const folder = getPluginFolder(ai, accountWalletInfo, pluginId)
-      const pluginIdFile = folder.file('Name.json')
-      try {
-        const text = await pluginIdFile.getText()
-        if (JSON.parse(text).name !== pluginId) {
-          throw new Error(`Warning: folder name doesn't match for ${pluginId}`)
-        }
-      } catch (e) {
-        await pluginIdFile.setText(JSON.stringify({ name: pluginId }))
-      }
-
-      // Set up the actual item:
-      const file = getPluginFile(ai, accountWalletInfo, pluginId, itemId)
-      await file.setText(JSON.stringify({ key: itemId, data: value }))
-    }
+  constructor (ai: ApiInput, accountWalletInfo: EdgeWalletInfo) {
+    super()
+    this._ai = ai
+    this._accountWalletInfo = accountWalletInfo
   }
 
-  return out
+  async deleteItem (pluginId: string, itemId: string): Promise<mixed> {
+    const file = getPluginFile(
+      this._ai,
+      this._accountWalletInfo,
+      pluginId,
+      itemId
+    )
+    await file.delete()
+  }
+
+  async deletePlugin (pluginId: string): Promise<mixed> {
+    const folder = getPluginFolder(this._ai, this._accountWalletInfo, pluginId)
+    await folder.delete()
+  }
+
+  async listItemIds (pluginId: string): Promise<Array<string>> {
+    const folder = getPluginFolder(this._ai, this._accountWalletInfo, pluginId)
+
+    const itemIds = await mapFiles(folder, file =>
+      file
+        .getText()
+        .then(text => JSON.parse(text).key)
+        .catch(e => void 0)
+    )
+    return itemIds.filter(itemId => typeof itemId === 'string')
+  }
+
+  async listPluginIds (): Promise<Array<string>> {
+    const folder = getPluginsFolder(this._ai, this._accountWalletInfo)
+
+    const pluginIds = await mapFolders(folder, folder =>
+      folder
+        .file('Name.json')
+        .getText()
+        .then(text => JSON.parse(text).name)
+        .catch(e => void 0)
+    )
+    return pluginIds.filter(pluginId => typeof pluginId === 'string')
+  }
+
+  async getItem (pluginId: string, itemId: string): Promise<string> {
+    const file = getPluginFile(
+      this._ai,
+      this._accountWalletInfo,
+      pluginId,
+      itemId
+    )
+    const text = await file.getText()
+    return JSON.parse(text).data
+  }
+
+  async setItem (
+    pluginId: string,
+    itemId: string,
+    value: string
+  ): Promise<mixed> {
+    // Set up the plugin folder, if needed:
+    const folder = getPluginFolder(this._ai, this._accountWalletInfo, pluginId)
+    const pluginIdFile = folder.file('Name.json')
+    try {
+      const text = await pluginIdFile.getText()
+      if (JSON.parse(text).name !== pluginId) {
+        throw new Error(`Warning: folder name doesn't match for ${pluginId}`)
+      }
+    } catch (e) {
+      await pluginIdFile.setText(JSON.stringify({ name: pluginId }))
+    }
+
+    // Set up the actual item:
+    const file = getPluginFile(
+      this._ai,
+      this._accountWalletInfo,
+      pluginId,
+      itemId
+    )
+    await file.setText(JSON.stringify({ key: itemId, data: value }))
+  }
 }

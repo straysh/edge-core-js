@@ -25,16 +25,14 @@ describe('edge login', function () {
     )
 
     await new Promise((resolve, reject) => {
-      const opts = {
-        onLogin: (err, account) => {
-          if (err) return reject(err)
-          return resolve()
-        },
-        displayName: 'test suite'
-      }
+      const opts = { displayName: 'test suite' }
       return context
         .requestEdgeLogin(opts)
-        .then(pending => simulateRemoteApproval(remote, pending.id))
+        .then(pending => {
+          simulateRemoteApproval(remote, pending.id)
+          pending.on('login', account => resolve())
+          pending.on('error', e => reject(e))
+        })
         .catch(reject)
     })
 
@@ -44,10 +42,7 @@ describe('edge login', function () {
   it('cancel', async function () {
     const [context] = makeFakeContexts({})
 
-    const opts = {
-      onLogin: function () {},
-      displayName: 'test suite'
-    }
+    const opts = { displayName: 'test suite' }
     const pendingLogin = await context.requestEdgeLogin(opts)
 
     // All we can verify here is that cancel is a callable method:

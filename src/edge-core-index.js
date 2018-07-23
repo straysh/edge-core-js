@@ -1,5 +1,7 @@
 // @flow
 
+import type { OnMethod } from 'yaob'
+
 // Sub-module exports:
 import * as error from './error.js'
 import * as internal from './internal.js'
@@ -147,6 +149,8 @@ export type EdgeContextOptions = {
   offline?: boolean
 }
 
+export type EdgeContextEvents = {}
+
 export interface EdgeContext {
   +appId: string;
 
@@ -218,6 +222,9 @@ export interface EdgeContext {
     toCurrencyCode: string
   ): Promise<EdgeExchangeSwapInfo>;
   getAvailableExchangeTokens(): Promise<Array<string>>;
+
+  // Callbacks:
+  +on: OnMethod<EdgeContextEvents>;
 }
 
 export type EdgeExchangeSwapInfo = {
@@ -236,16 +243,21 @@ export type EdgePasswordRules = {
   passed: boolean
 }
 
-export type EdgeEdgeLoginRequest = {
-  id: string,
-  cancelRequest(): void
+export type EdgeLoginRequestEvents = {
+  processLogin: string, // username
+  login: EdgeAccount,
+  error: Error
+}
+
+export interface EdgeEdgeLoginRequest {
+  +id: string;
+  cancelRequest(): void;
+  +on: OnMethod<EdgeLoginRequestEvents>;
 }
 
 export type EdgeEdgeLoginOptions = EdgeAccountOptions & {
   displayImageUrl?: string,
-  displayName?: string,
-  onProcessLogin?: (username: string) => mixed,
-  onLogin(e?: Error, account?: EdgeAccount): mixed
+  displayName?: string
 }
 
 export type EdgeLoginMessages = {
@@ -346,6 +358,15 @@ export interface EdgePluginData {
   setItem(pluginId: string, itemId: string, value: string): Promise<mixed>;
 }
 
+export type EdgeAccountEvents = {
+  dataChanged: mixed,
+  keyListChanged: mixed,
+  loggedOut: mixed,
+  otpDrift: mixed,
+  remoteOtpChange: mixed,
+  remotePasswordChange: mixed
+}
+
 export interface EdgeAccount {
   // Basic login information:
   +appId: string;
@@ -357,6 +378,8 @@ export interface EdgeAccount {
   // Special-purpose API's:
   +currencyTools: EdgeCurrencyToolsMap;
   +exchangeCache: any;
+  +folder: DiskletFolder;
+  +localFolder: DiskletFolder;
   +pluginData: EdgePluginData;
 
   // What login method was used?
@@ -418,6 +441,9 @@ export interface EdgeAccount {
     type: string,
     opts?: EdgeCreateCurrencyWalletOptions
   ): Promise<EdgeCurrencyWallet>;
+
+  // Callbacks:
+  +on: OnMethod<EdgeAccountEvents>;
 }
 
 // edge login types ---------------------------------------------------
@@ -465,6 +491,19 @@ export type EdgeCurrencyCodeOptions = {
 export type EdgeTxidMap = { [txid: string]: number }
 
 export type EdgeUnusedOptions = {}
+
+export type EdgeCurrencyWalletEvents = {
+  addressesChecked: number,
+  balanceChanged: {
+    currencyCode: string,
+    balance: string
+  },
+  blockHeightChanged: number,
+  dataChanged: mixed,
+  nameChanged: string | null,
+  newTransactions: Array<EdgeTransaction>,
+  transactionsChanged: Array<EdgeTransaction>
+}
 
 export interface EdgeCurrencyWallet {
   // EdgeWalletInfo members:
@@ -547,6 +586,9 @@ export interface EdgeCurrencyWallet {
   // Deprecated API's:
   getBalance(opts?: EdgeCurrencyCodeOptions): string;
   getBlockHeight(): number;
+
+  // Callbacks:
+  +on: OnMethod<EdgeCurrencyWalletEvents>;
 }
 
 export type EdgeMetadata = {

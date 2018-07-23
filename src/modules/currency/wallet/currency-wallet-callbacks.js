@@ -12,7 +12,7 @@ import {
   getStorageWalletLastChanges,
   hashStorageWalletFilename
 } from '../../storage/storage-selectors.js'
-import { combineTxWithFile } from './currency-wallet-api.js'
+import { CurrencyWallet, combineTxWithFile } from './currency-wallet-api.js'
 import { loadAllFiles, setupNewTxMetadata } from './currency-wallet-files.js'
 import type {
   CurrencyWalletInput,
@@ -141,10 +141,16 @@ export function makeCurrencyWalletCallbacks (
 ): EdgeCurrencyEngineCallbacks {
   const walletId = input.props.id
 
+  function getApi (input: CurrencyWalletInput): CurrencyWallet | void {
+    return input.props.selfOutput.api
+  }
+
   const throtteldOnTxChanged = makeThrottledTxCallback(
     input,
     (txArray: Array<EdgeTransaction>) => {
       forEachListener(input, ({ onTransactionsChanged }) => {
+        const api = getApi(input)
+        if (api) api.emit('transactionsChanged', txArray)
         if (onTransactionsChanged) {
           onTransactionsChanged(walletId, txArray)
         }
@@ -155,6 +161,8 @@ export function makeCurrencyWalletCallbacks (
   const throttledOnNewTx = makeThrottledTxCallback(
     input,
     (txArray: Array<EdgeTransaction>) => {
+      const api = getApi(input)
+      if (api) api.emit('newTransactions', txArray)
       forEachListener(input, ({ onNewTransactions }) => {
         if (onNewTransactions) {
           onNewTransactions(walletId, txArray)
@@ -167,6 +175,8 @@ export function makeCurrencyWalletCallbacks (
     input,
     (ratio: number) => {
       forEachListener(input, ({ onAddressesChecked }) => {
+        const api = getApi(input)
+        if (api) api.emit('addressesChecked', ratio)
         if (onAddressesChecked) {
           onAddressesChecked(walletId, ratio)
         }
@@ -178,6 +188,10 @@ export function makeCurrencyWalletCallbacks (
     input,
     (balanceArgs: { currencyCode: string, balance: string }) => {
       const { currencyCode, balance } = balanceArgs
+      const api = input.props.selfOutput.api
+      if (api != null) {
+        api.emit('balanceChanged', { currencyCode, balance })
+      }
       forEachListener(input, ({ onBalanceChanged }) => {
         if (onBalanceChanged) {
           onBalanceChanged(walletId, currencyCode, balance)
@@ -204,6 +218,8 @@ export function makeCurrencyWalletCallbacks (
         type: 'CURRENCY_ENGINE_CHANGED_HEIGHT',
         payload: { height, walletId }
       })
+      const api = getApi(input)
+      if (api) api.emit('blockHeightChanged', height)
       forEachListener(input, ({ onBlockHeightChanged }) => {
         if (onBlockHeightChanged) {
           onBlockHeightChanged(walletId, height)

@@ -1,6 +1,7 @@
 // @flow
 
 import { base32 } from 'rfc4648'
+import { deleteProxy } from 'yaob'
 
 import type {
   EdgeAccountCallbacks,
@@ -40,6 +41,7 @@ import {
   syncStorageWallet
 } from '../storage/storage-actions.js'
 import { getStorageWalletLastChanges } from '../storage/storage-selectors.js'
+import { Account } from './account-api.js'
 import { CurrencyTools } from './currency-api.js'
 import { changeWalletStates, loadAllWalletStates } from './wallet-states.js'
 
@@ -113,6 +115,7 @@ export function ensureAccountExists (
  * This is the data an account contains, and the methods to update it.
  */
 export class AccountState {
+  api: Account
   ai: ApiInput
   appId: string
   accountWalletInfo: EdgeWalletInfo
@@ -131,7 +134,8 @@ export class AccountState {
     loginTree: LoginTree,
     accountWalletInfo: EdgeWalletInfo,
     currencyPlugins: Array<EdgeCurrencyPlugin>,
-    callbacks: EdgeAccountCallbacks
+    callbacks: EdgeAccountCallbacks,
+    api: Account
   ) {
     if (!loginTree.username) throw new Error('Cannot log in: missing username')
     const { username } = loginTree
@@ -141,6 +145,7 @@ export class AccountState {
     this.appId = appId
     this.accountWalletInfo = accountWalletInfo
     this.callbacks = callbacks
+    this.api = api
 
     // Login state:
     this.loginTree = loginTree
@@ -194,6 +199,7 @@ export class AccountState {
     if (!this.login) return
 
     await this.reloadWalletStates()
+    this.api.emit('keyListChanged', [])
     if (this.callbacks.onKeyListChanged) {
       this.callbacks.onKeyListChanged()
     }
@@ -202,9 +208,12 @@ export class AccountState {
   async logout () {
     const { activeLoginId } = this
     const { dispatch } = this.ai.props
-    dispatch({ type: 'LOGOUT', payload: { activeLoginId } })
+
+    this.api.emit('loggedOut', void 0)
+    deleteProxy(this.api)
 
     // Shut down:
+    dispatch({ type: 'LOGOUT', payload: { activeLoginId } })
     dispatch(this.disposer)
     const killedAccount: any = this
     killedAccount.ai = null
@@ -436,6 +445,7 @@ export class AccountState {
         payload: { activeLoginId, walletInfos: this.allKeys }
       })
 
+      this.api.emit('keyListChanged', [])
       if (this.callbacks.onKeyListChanged) {
         this.callbacks.onKeyListChanged()
       }
@@ -457,6 +467,7 @@ export class AccountState {
       type: 'ACCOUNT_KEYS_LOADED',
       payload: { activeLoginId, walletInfos: this.allKeys }
     })
+    this.api.emit('keyListChanged', [])
 
     return this
   }
@@ -473,6 +484,7 @@ export class AccountState {
         type: 'ACCOUNT_KEYS_LOADED',
         payload: { activeLoginId, walletInfos: this.allKeys }
       })
+      this.api.emit('keyListChanged', [])
 
       return this
     })
@@ -619,7 +631,8 @@ export async function makeAccountState (
   ai: ApiInput,
   appId: string,
   loginTree: LoginTree,
-  callbacks: Object
+  callbacks: Object,
+  api: Account
 ): Promise<AccountState> {
   const currencyPlugins = await waitForCurrencyPlugins(ai)
 
@@ -639,7 +652,8 @@ export async function makeAccountState (
         loginTree,
         accountWalletInfo,
         currencyPlugins,
-        callbacks
+        callbacks,
+        api
       )
       const disposer = ai.props.dispatch(
         createReaction(
