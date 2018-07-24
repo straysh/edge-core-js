@@ -208,9 +208,6 @@ export interface EdgeContext {
   requestOtpReset(username: string, otpResetToken: string): Promise<Date>;
   fetchLoginMessages(): Promise<EdgeLoginMessages>;
 
-  // Misc. stuff:
-  getCurrencyPlugins(): Promise<Array<EdgeCurrencyPlugin>>;
-
   // Shapeshift:
   getExchangeSwapRate(
     fromCurrencyCode: string,
