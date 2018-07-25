@@ -743,7 +743,6 @@ export type EdgeCurrencyEngineOptions = {
 }
 
 export interface EdgeCurrencyEngine {
-  updateSettings(settings: any): void;
   startEngine(): Promise<void>;
   killEngine(): Promise<void>;
   getBlockHeight(): number;
@@ -801,6 +800,7 @@ export interface EdgeCurrencyPlugin {
   parseUri(uri: string): EdgeParsedUri;
   encodeUri(obj: EdgeEncodeUri): string;
   +getSplittableTypes?: (walletInfo: EdgeWalletInfo) => Array<string>;
+  +changeSettings?: (settings: Object) => Promise<mixed>;
 }
 
 export interface EdgeCurrencyPluginFactory {
