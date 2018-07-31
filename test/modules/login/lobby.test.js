@@ -33,6 +33,7 @@ describe('edge login lobby', function () {
     const testRequest = { testRequest: 'This is a test' }
     const testReply = { testReply: 'This is a test' }
 
+    let blah = false
     return new Promise((resolve, reject) => {
       // Use 10 ms polling to really speed up the test:
       s1
@@ -41,8 +42,10 @@ describe('edge login lobby', function () {
           lobby.on('error', reject)
           lobby.on('repliesChanged', (replies: Array<Object>) => {
             if (replies.length === 0) return
+            if (blah) return
             assert.deepEqual(replies[0], testReply)
             lobby.close()
+            blah = true
             resolve()
           })
 
