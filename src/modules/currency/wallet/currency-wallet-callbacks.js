@@ -150,7 +150,10 @@ export function makeCurrencyWalletCallbacks (
     (txArray: Array<EdgeTransaction>) => {
       forEachListener(input, ({ onTransactionsChanged }) => {
         const api = getApi(input)
-        if (api) api.emit('transactionsChanged', txArray)
+        if (api) {
+          api.update()
+          api.emit('transactionsChanged', txArray)
+        }
         if (onTransactionsChanged) {
           onTransactionsChanged(walletId, txArray)
         }
@@ -162,7 +165,10 @@ export function makeCurrencyWalletCallbacks (
     input,
     (txArray: Array<EdgeTransaction>) => {
       const api = getApi(input)
-      if (api) api.emit('newTransactions', txArray)
+      if (api) {
+        api.update()
+        api.emit('newTransactions', txArray)
+      }
       forEachListener(input, ({ onNewTransactions }) => {
         if (onNewTransactions) {
           onNewTransactions(walletId, txArray)
@@ -176,7 +182,10 @@ export function makeCurrencyWalletCallbacks (
     (ratio: number) => {
       forEachListener(input, ({ onAddressesChecked }) => {
         const api = getApi(input)
-        if (api) api.emit('addressesChecked', ratio)
+        if (api) {
+          api.update()
+          api.emit('addressesChecked', ratio)
+        }
         if (onAddressesChecked) {
           onAddressesChecked(walletId, ratio)
         }
@@ -190,6 +199,7 @@ export function makeCurrencyWalletCallbacks (
       const { currencyCode, balance } = balanceArgs
       const api = input.props.selfOutput.api
       if (api != null) {
+        api.update()
         api.emit('balanceChanged', { currencyCode, balance })
       }
       forEachListener(input, ({ onBalanceChanged }) => {
@@ -219,7 +229,7 @@ export function makeCurrencyWalletCallbacks (
         payload: { height, walletId }
       })
       const api = getApi(input)
-      if (api) api.emit('blockHeightChanged', height)
+      if (api) api.update()
       forEachListener(input, ({ onBlockHeightChanged }) => {
         if (onBlockHeightChanged) {
           onBlockHeightChanged(walletId, height)

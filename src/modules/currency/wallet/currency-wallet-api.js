@@ -1,7 +1,7 @@
 // @flow
 
 import { add, div, lte, mul, sub } from 'biggystring'
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import type {
   DiskletFolder,
@@ -56,7 +56,7 @@ const fakeMetadata = {
   notes: ''
 }
 
-export class CurrencyWalletSync extends Proxyable<EdgeCurrencyWalletEvents> {
+export class CurrencyWalletSync extends Bridgeable<EdgeCurrencyWalletEvents> {
   +balances: EdgeBalances
   +blockHeight: number
   +currencyInfo: EdgeCurrencyInfo
@@ -143,7 +143,9 @@ export class CurrencyWallet extends CurrencyWalletSync
     return this._input.props.selfState.name
   }
   renameWallet (name: string) {
-    return renameCurrencyWallet(this._input, name).then(() => {})
+    return renameCurrencyWallet(this._input, name).then(() => {
+      this.update()
+    })
   }
 
   // Currency info:
@@ -154,7 +156,9 @@ export class CurrencyWallet extends CurrencyWalletSync
     return this._plugin.currencyInfo
   }
   setFiatCurrencyCode (fiatCurrencyCode: string) {
-    return setCurrencyWalletFiat(this._input, fiatCurrencyCode).then(() => {})
+    return setCurrencyWalletFiat(this._input, fiatCurrencyCode).then(() => {
+      this.update()
+    })
   }
 
   // Chain state:
@@ -466,7 +470,9 @@ export class CurrencyWallet extends CurrencyWalletSync
       type: 'CURRENCY_ENGINE_CLEARED',
       payload: { walletId: this._input.props.id }
     })
-    return Promise.resolve(this._engine.resyncBlockchain())
+    return Promise.resolve(this._engine.resyncBlockchain()).then(() => {
+      this.update()
+    })
   }
 
   dumpData (): Promise<EdgeDataDump> {

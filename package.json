@@ -67,7 +67,7 @@
     "scrypt-js": "^2.0.3",
     "utf8": "^3.0.0",
     "ws": "^5.1.1",
-    "yaob": "https://github.com/Airbitz/yaob.git#rewrite2"
+    "yaob": "^0.1.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

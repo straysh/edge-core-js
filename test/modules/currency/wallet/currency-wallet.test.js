@@ -3,11 +3,13 @@
 import { add } from 'biggystring'
 import { assert, expect } from 'chai'
 import { describe, it } from 'mocha'
-import { createStore } from 'redux'
 
 import type { EdgeCurrencyWallet } from '../../../../src/edge-core-index.js'
-import { fakeUser, makeFakeContexts } from '../../../../src/edge-core-index.js'
-import { awaitState } from '../../../../src/util/redux/reaction.js'
+import {
+  EdgeAccount,
+  fakeUser,
+  makeFakeContexts
+} from '../../../../src/edge-core-index.js'
 import { makeAssertLog } from '../../../assert-log.js'
 import {
   makeFakeCurrency,
@@ -22,21 +24,28 @@ function snooze (ms: number) {
 async function makeFakeCurrencyWallet (store): Promise<EdgeCurrencyWallet> {
   const plugin = makeFakeCurrency(store)
 
-  // Use `onKeyListChanged` to trigger checking for wallets:
-  const trigger = createStore(state => null)
-
   const [context] = makeFakeContexts({
     localFakeUser: true,
     plugins: [plugin, fakeExchangePlugin]
   })
-  const account = await context.loginWithPIN(fakeUser.username, fakeUser.pin)
-  trigger.dispatch({ type: 'DUMMY' })
-  account.on('keyListChanged', blah => trigger.dispatch({ type: 'DUMMY' }))
-
-  // Wait for the wallet to load:
+  const account: EdgeAccount = await context.loginWithPIN(
+    fakeUser.username,
+    fakeUser.pin
+  )
   const walletInfo = account.getFirstWalletInfo('wallet:fakecoin')
   if (!walletInfo) throw new Error('Broken test account')
-  return awaitState(trigger, state => account.currencyWallets[walletInfo.id])
+
+  return new Promise(resolve => {
+    function f () {
+      const wallet = account.currencyWallets[walletInfo.id]
+      if (wallet) {
+        unsubscribe()
+        resolve(wallet)
+      }
+    }
+    const unsubscribe = account.on('keyListChanged', () => f())
+    f() // Also check right away
+  })
 }
 
 describe('currency wallets', function () {
@@ -57,6 +66,7 @@ describe('currency wallets', function () {
   })
 
   it('triggers callbacks', async function () {
+    this.timeout(4000)
     const log = makeAssertLog(true)
     const store = makeFakeCurrencyStore()
 
@@ -88,15 +98,17 @@ describe('currency wallets', function () {
     expect(wallet.balances).to.deep.equal({ TEST: '0', TOKEN: '30' })
 
     store.dispatch({ type: 'SET_BLOCK_HEIGHT', payload: 200 })
-    log.assert(['blockHeight 200', 'blockHeight 200'])
+    await snooze(snoozeTimeMs)
+    log.assert(['blockHeight 200'])
     assert.equal(wallet.getBlockHeight(), 200)
     expect(wallet.blockHeight).to.equal(200)
 
-    await snooze(snoozeTimeMs)
     store.dispatch({ type: 'SET_PROGRESS', payload: 0.123456789 })
+    await snooze(snoozeTimeMs)
     log.assert(['progress 0.123456789'])
 
     store.dispatch({ type: 'SET_BALANCE', payload: 1234567890 })
+    await snooze(snoozeTimeMs)
     log.assert(['balance TEST 1234567890'])
 
     // New transactions:
@@ -105,14 +117,13 @@ describe('currency wallets', function () {
       { txid: 'b', nativeAmount: '100' }
     ]
     store.dispatch({ type: 'SET_TXS', payload: txState })
+    await snooze(snoozeTimeMs)
     log.assert(['new a', 'new b'])
 
-    await snooze(snoozeTimeMs)
     // Should not trigger:
     store.dispatch({ type: 'SET_TXS', payload: txState })
     log.assert([])
 
-    await snooze(snoozeTimeMs)
     // Changed transactions:
     txState = [
       ...txState,
@@ -120,11 +131,12 @@ describe('currency wallets', function () {
       { txid: 'c', nativeAmount: '200' }
     ]
     store.dispatch({ type: 'SET_TXS', payload: txState })
+    await snooze(snoozeTimeMs)
     log.assert(['changed a', 'new c'])
 
-    await snooze(snoozeTimeMs)
     txState = [{ txid: 'd', nativeAmount: '200' }]
     store.dispatch({ type: 'SET_TXS', payload: txState })
+    await snooze(snoozeTimeMs)
     log.assert(['new d'])
 
     // Make several changes in a row which should get batched into one call due to throttling
@@ -134,8 +146,8 @@ describe('currency wallets', function () {
     store.dispatch({ type: 'SET_TXS', payload: txState })
     txState = [{ txid: 'g', nativeAmount: '200' }]
     store.dispatch({ type: 'SET_TXS', payload: txState })
-    await snooze(snoozeTimeMs)
 
+    await snooze(snoozeTimeMs)
     log.assert(['new e', 'new f', 'new g'])
   })
 

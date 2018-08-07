@@ -1,6 +1,6 @@
 // @flow
 
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import type {
   EdgeAccount,
@@ -35,7 +35,7 @@ import { PluginData } from './plugin-data-api.js'
 /**
  * Synchronous client-side account methods.
  */
-export class AccountSync extends Proxyable<EdgeAccountEvents> {
+export class AccountSync extends Bridgeable<EdgeAccountEvents> {
   +allKeys: Array<EdgeWalletInfoFull>
 
   getFirstWalletInfo (type: string): ?EdgeWalletInfo {
@@ -157,6 +157,7 @@ export class Account extends AccountSync implements EdgeAccount {
     answers: Array<string>
   ): Promise<string> {
     return this._state.changeRecovery(questions, answers).then(() => {
+      this.update()
       if (!this._state.loginTree.recovery2Key) {
         throw new Error('Missing recoveryKey')
       }
@@ -183,7 +184,9 @@ export class Account extends AccountSync implements EdgeAccount {
     return this._state.deletePin().then(() => {})
   }
   deleteRecovery (): Promise<mixed> {
-    return this._state.deleteRecovery().then(() => {})
+    return this._state.deleteRecovery().then(() => {
+      this.update()
+    })
   }
 
   // OTP:
@@ -196,13 +199,19 @@ export class Account extends AccountSync implements EdgeAccount {
     return this._state.login.otpResetDate
   }
   cancelOtpReset (): Promise<mixed> {
-    return this._state.cancelOtpReset().then(() => {})
+    return this._state.cancelOtpReset().then(() => {
+      this.update()
+    })
   }
   enableOtp (timeout: number = 7 * 24 * 60 * 60): Promise<mixed> {
-    return this._state.enableOtp(timeout).then(() => {})
+    return this._state.enableOtp(timeout).then(() => {
+      this.update()
+    })
   }
   disableOtp (): Promise<mixed> {
-    return this._state.disableOtp().then(() => {})
+    return this._state.disableOtp().then(() => {
+      this.update()
+    })
   }
 
   // Edge login approval:
@@ -220,7 +229,9 @@ export class Account extends AccountSync implements EdgeAccount {
     return this._state.allKeys
   }
   changeWalletStates (walletStates: EdgeWalletStates): Promise<mixed> {
-    return this._state.changeWalletStates(walletStates)
+    return this._state.changeWalletStates(walletStates).then(() => {
+      this.update()
+    })
   }
   createWallet (type: string, keys: any): Promise<string> {
     if (keys == null) {
@@ -234,10 +245,16 @@ export class Account extends AccountSync implements EdgeAccount {
 
     const walletInfo = makeStorageKeyInfo(this._ai, type, keys)
     const kit = makeKeysKit(this._ai, this._state.login, walletInfo)
-    return this._state.applyKit(kit).then(() => walletInfo.id)
+    return this._state.applyKit(kit).then(() => {
+      this.update()
+      return walletInfo.id
+    })
   }
   splitWalletInfo (walletId: string, newWalletType: string): Promise<string> {
-    return this._state.splitWalletInfo(walletId, newWalletType)
+    return this._state.splitWalletInfo(walletId, newWalletType).then(id => {
+      this.update()
+      return id
+    })
   }
   listSplittableWalletTypes (walletId: string): Promise<Array<string>> {
     return this._state.listSplittableWalletTypes(walletId)
@@ -270,7 +287,9 @@ export class Account extends AccountSync implements EdgeAccount {
     type: string,
     opts?: EdgeCreateCurrencyWalletOptions = {}
   ): Promise<EdgeCurrencyWallet> {
-    return this._state.createCurrencyWallet(type, opts)
+    const wallet = await this._state.createCurrencyWallet(type, opts)
+    this.update()
+    return wallet
   }
 }
 

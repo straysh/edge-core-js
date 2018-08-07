@@ -1,6 +1,6 @@
 // @flow
 
-import { Proxyable, deleteProxy } from 'yaob'
+import { Bridgeable, closeObject } from 'yaob'
 
 import { authRequest } from '../login/authServer.js'
 import { fetchLobbyRequest, makeLobby, sendLobbyReply } from '../login/lobby.js'
@@ -17,7 +17,7 @@ export type EdgeLobbyEvents = {
  * The requesting side of an Edge login lobby.
  * The `replies` property will update as replies come in.
  */
-class EdgeLobby extends Proxyable<EdgeLobbyEvents> {
+class EdgeLobby extends Bridgeable<EdgeLobbyEvents> {
   _lobby: Object
   _replies: Array<Object>
   _unsubscribe: Function
@@ -49,7 +49,7 @@ class EdgeLobby extends Proxyable<EdgeLobbyEvents> {
 
   close () {
     this._unsubscribe()
-    deleteProxy(this)
+    closeObject(this)
   }
 }
 
@@ -57,7 +57,7 @@ class EdgeLobby extends Proxyable<EdgeLobbyEvents> {
  * A secret internal API which has some goodies for the CLI
  * and for unit testing.
  */
-export class EdgeInternalStuff extends Proxyable<> {
+export class EdgeInternalStuff extends Bridgeable<> {
   _ai: ApiInput
 
   constructor (ai: ApiInput) {

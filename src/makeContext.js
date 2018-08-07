@@ -3,7 +3,7 @@
 import 'regenerator-runtime/runtime'
 
 import { isReactNative } from 'detect-bundler'
-import { makeProxyClient, makeProxyServer } from 'yaob'
+import { makeLocalBridge } from 'yaob'
 
 import type { EdgeContext, EdgeContextOptions } from './edge-core-index.js'
 import { makeBrowserIo } from './io/browser/browser-io.js'
@@ -58,33 +58,12 @@ export function makeFakeContexts (
     startCoreRoot(coreRoot)
 
     // Yaob:
-    const constructors = {
+    const sharedClasses = {
       AccountSync,
       ContextSync,
       CurrencyWalletSync
     }
-    function sendClientMessage (message) {
-      // console.log(JSON.stringify(message, null, 1))
-      server.handleMessage(message)
-    }
-    function sendServerMessage (message) {
-      // console.log(JSON.stringify(message, null, 1))
-      client.handleMessage(message)
-    }
-    const client = makeProxyClient({
-      sendMessage: sendClientMessage,
-      constructors
-    })
-    const root: any = coreRoot.output.contextApi
-    const server = makeProxyServer({
-      constructors,
-      root,
-      sendMessage: sendServerMessage
-    })
-
-    // $FlowFixMe
-    const context: EdgeContext = client.syncRoot
-    return context
+    return makeLocalBridge(coreRoot.output.contextApi, { sharedClasses })
   })
 }
 

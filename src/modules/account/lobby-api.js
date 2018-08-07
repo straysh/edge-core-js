@@ -1,6 +1,6 @@
 // @flow
 
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import type { EdgeLobby, EdgeLoginRequest } from '../../edge-core-index.js'
 import { wrapObject } from '../../util/api.js'
@@ -95,7 +95,7 @@ async function approveLoginRequest (
   })
 }
 
-export class EdgeLobbyLoginRequest extends Proxyable<> {
+export class EdgeLobbyLoginRequest extends Bridgeable<> {
   _ai: ApiInput
   _displayName: string
   _displayImageUrl: string | void

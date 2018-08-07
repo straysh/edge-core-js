@@ -1,7 +1,7 @@
 // @flow
 
 import { base32 } from 'rfc4648'
-import { deleteProxy } from 'yaob'
+import { closeObject } from 'yaob'
 
 import type {
   EdgeAccountCallbacks,
@@ -199,6 +199,7 @@ export class AccountState {
     if (!this.login) return
 
     await this.reloadWalletStates()
+    this.api.update()
     this.api.emit('keyListChanged', [])
     if (this.callbacks.onKeyListChanged) {
       this.callbacks.onKeyListChanged()
@@ -210,7 +211,7 @@ export class AccountState {
     const { dispatch } = this.ai.props
 
     this.api.emit('loggedOut', void 0)
-    deleteProxy(this.api)
+    closeObject(this.api)
 
     // Shut down:
     dispatch({ type: 'LOGOUT', payload: { activeLoginId } })
@@ -445,6 +446,7 @@ export class AccountState {
         payload: { activeLoginId, walletInfos: this.allKeys }
       })
 
+      this.api.update()
       this.api.emit('keyListChanged', [])
       if (this.callbacks.onKeyListChanged) {
         this.callbacks.onKeyListChanged()
@@ -467,6 +469,7 @@ export class AccountState {
       type: 'ACCOUNT_KEYS_LOADED',
       payload: { activeLoginId, walletInfos: this.allKeys }
     })
+    this.api.update()
     this.api.emit('keyListChanged', [])
 
     return this
@@ -484,6 +487,7 @@ export class AccountState {
         type: 'ACCOUNT_KEYS_LOADED',
         payload: { activeLoginId, walletInfos: this.allKeys }
       })
+      this.api.update()
       this.api.emit('keyListChanged', [])
 
       return this

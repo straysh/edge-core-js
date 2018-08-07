@@ -157,7 +157,10 @@ export default combinePixies({
     )
     input.onOutput(currencyWalletApi)
 
-    if (theApi) theApi.emit('keyListChanged', [])
+    if (theApi) {
+      theApi.update()
+      theApi.emit('keyListChanged', [])
+    }
     forEachListener(input, ({ onKeyListChanged }) => {
       if (onKeyListChanged) onKeyListChanged()
     })

@@ -1,6 +1,6 @@
 // @flow
 
-import { Proxyable, deleteProxy } from 'yaob'
+import { Bridgeable, closeObject } from 'yaob'
 
 import type {
   EdgeEdgeLoginRequest,
@@ -16,7 +16,7 @@ import { makeLoginTree, searchTree, syncLogin } from './login.js'
 /**
  * The public API for edge login requests.
  */
-class ABCEdgeLoginRequest extends Proxyable<EdgeLoginRequestEvents>
+class ABCEdgeLoginRequest extends Bridgeable<EdgeLoginRequestEvents>
   implements EdgeEdgeLoginRequest {
   _lobby: Object
   _subscription: Object
@@ -37,7 +37,7 @@ class ABCEdgeLoginRequest extends Proxyable<EdgeLoginRequestEvents>
 
   cancelRequest () {
     this._subscription.unsubscribe()
-    deleteProxy(this)
+    closeObject(this)
   }
 
   async _onReply (ai: ApiInput, reply, appId) {

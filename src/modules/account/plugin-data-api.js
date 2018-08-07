@@ -1,7 +1,7 @@
 // @flow
 
 import { mapFiles, mapFolders } from 'disklet'
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import type { EdgePluginData, EdgeWalletInfo } from '../../edge-core-index.js'
 import type { ApiInput } from '../root.js'
@@ -30,7 +30,7 @@ function getPluginFile (ai, accountWalletInfo, pluginId, itemId) {
   )
 }
 
-export class PluginData extends Proxyable<> implements EdgePluginData {
+export class PluginData extends Bridgeable<> implements EdgePluginData {
   _ai: ApiInput
   _accountWalletInfo: EdgeWalletInfo
 

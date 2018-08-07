@@ -1,10 +1,10 @@
 // @flow
 
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import { DiskletFile, DiskletFolder } from '../../edge-core-index.js'
 
-export class ProxyableFile extends Proxyable implements DiskletFile {
+export class ProxyableFile extends Bridgeable implements DiskletFile {
   _file: DiskletFile
 
   constructor (file: DiskletFile) {
@@ -29,7 +29,7 @@ export class ProxyableFile extends Proxyable implements DiskletFile {
   }
 }
 
-export class ProxyableFolder extends Proxyable implements DiskletFolder {
+export class ProxyableFolder extends Bridgeable implements DiskletFolder {
   _fileProxies: { [name: string]: ProxyableFile }
   _folder: DiskletFolder
   _folderProxies: { [name: string]: ProxyableFolder }

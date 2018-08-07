@@ -1,7 +1,7 @@
 // @flow
 
 import { stopUpdates } from 'redux-pixies'
-import { Proxyable } from 'yaob'
+import { Bridgeable } from 'yaob'
 
 import type {
   EdgeAccountOptions,
@@ -32,7 +32,7 @@ import { EdgeInternalStuff } from './internal-api.js'
 /**
  * Synchronous client-side context methods.
  */
-export class ContextSync extends Proxyable<EdgeContextEvents> {
+export class ContextSync extends Bridgeable<EdgeContextEvents> {
   checkPasswordRules (password: string) {
     return checkPasswordRules(password)
   }

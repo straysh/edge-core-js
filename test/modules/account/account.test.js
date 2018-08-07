@@ -25,7 +25,7 @@ describe('account', function () {
 
     const account = await context.loginWithPIN(fakeUser.username, fakeUser.pin)
     account.on('keyListChanged', () => log('called'))
-    await new Promise(resolve => setTimeout(resolve, 10))
+    await account.createWallet('wallet:fakecoin')
     log.assert(['called'])
   })
 
