@@ -5,9 +5,11 @@ import type { OnMethod } from 'yaob'
 // Sub-module exports:
 import * as error from './error.js'
 import * as internal from './internal.js'
+import * as yaob from './yaob-stuff.js'
 
 export { error }
 export { internal }
+export { yaob }
 
 // Ancillary exports:
 export { makeBrowserIo } from './io/browser/browser-io.js'

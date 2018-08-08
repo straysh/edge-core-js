@@ -45,7 +45,7 @@ export class ContextSync extends Bridgeable<EdgeContextEvents> {
 /**
  * Asynchronous server-side context methods.
  */
-class Context extends ContextSync implements EdgeContext {
+export class Context extends ContextSync implements EdgeContext {
   +_ai: ApiInput
   +_internalApi: EdgeInternalStuff
   +_shapeshiftApi: *

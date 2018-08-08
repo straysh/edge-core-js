@@ -11,10 +11,8 @@ import { makeFakeIos } from './io/fake/fake-io.js'
 import { stashFakeUser } from './io/fake/fakeUser.js'
 import { isNode, makeNodeIo } from './io/node/node-io.js'
 import { makeReactNativeIo } from './io/react-native/react-native-io.js'
-import { AccountSync } from './modules/account/account-api.js'
-import { ContextSync } from './modules/context/context-api-pixie.js'
-import { CurrencyWalletSync } from './modules/currency/wallet/currency-wallet-api.js'
 import { makeCoreRoot, startCoreRoot } from './modules/root.js'
+import { sharedClasses } from './yaob-stuff.js'
 
 /**
  * Initializes the Edge core library,
@@ -58,11 +56,6 @@ export function makeFakeContexts (
     startCoreRoot(coreRoot)
 
     // Yaob:
-    const sharedClasses = {
-      AccountSync,
-      ContextSync,
-      CurrencyWalletSync
-    }
     return makeLocalBridge(coreRoot.output.contextApi, { sharedClasses })
   })
 }
