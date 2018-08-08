@@ -57,11 +57,11 @@ export class Context extends ContextSync implements EdgeContext {
     this._shapeshiftApi = makeShapeshiftApi(ai)
   }
 
-  get appId () {
+  get appId (): string {
     return this._ai.props.state.login.appId
   }
 
-  get _internalEdgeStuff () {
+  get _internalEdgeStuff (): EdgeInternalStuff {
     return this._internalApi
   }
 

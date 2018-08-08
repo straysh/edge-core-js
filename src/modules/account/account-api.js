@@ -3,6 +3,7 @@
 import { Bridgeable } from 'yaob'
 
 import type {
+  DiskletFolder,
   EdgeAccount,
   EdgeAccountCallbacks,
   EdgeAccountEvents,
@@ -107,10 +108,10 @@ export class Account extends AccountSync implements EdgeAccount {
   get exchangeCache (): any {
     return this._exchangeCache
   }
-  get folder () {
+  get folder (): DiskletFolder {
     return this._folder
   }
-  get localFolder () {
+  get localFolder (): DiskletFolder {
     return this._localFolder
   }
   get pluginData (): EdgePluginData {
@@ -121,19 +122,19 @@ export class Account extends AccountSync implements EdgeAccount {
   get edgeLogin (): boolean {
     return this._state.loginTree.loginKey == null
   }
-  get keyLogin () {
+  get keyLogin (): boolean {
     return this._loginType === 'keyLogin'
   }
-  get newAccount () {
+  get newAccount (): boolean {
     return this._loginType === 'newAccount'
   }
-  get passwordLogin () {
+  get passwordLogin (): boolean {
     return this._loginType === 'passwordLogin'
   }
-  get pinLogin () {
+  get pinLogin (): boolean {
     return this._loginType === 'pinLogin'
   }
-  get recoveryLogin () {
+  get recoveryLogin (): boolean {
     return this._loginType === 'recoveryLogin'
   }
 

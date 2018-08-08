@@ -122,15 +122,15 @@ export class EdgeLobbyLoginRequest extends Bridgeable<> {
     this._accountState = accountState
   }
 
-  get appId () {
+  get appId (): string {
     return this._loginRequest.appId
   }
 
-  get displayImageUrl () {
+  get displayImageUrl (): string | void {
     return this._displayImageUrl
   }
 
-  get displayName () {
+  get displayName (): string {
     return this._displayName
   }
 
